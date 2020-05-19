@@ -1,0 +1,16 @@
+server:
+    hostname: localhost
+    port: 7000
+storage:
+    sql: 
+        driver: postgres
+        host: localhost
+        port: 5432
+        user: zero
+        password: this-should-not-be
+        options:
+            - parseTime=true
+            - someOption=false
+logging:
+    level: info
+    file: ./log/void.log
