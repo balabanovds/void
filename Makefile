@@ -3,14 +3,19 @@ include .env
 run:
 	go run ./cmd/void
 
-pg-shell:
+tests:
+	go test -v -race ./...
+
+shell-pg:
 	docker exec -it void_posgres_1 bash
 
-test-migrate-up:
+migrate-test-reset: migrate-test-down migrate-test-up
+
+migrate-test-up:
 	migrate -path migrations -database \
 		"postgres://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE_TEST)?sslmode=disable" up
 
-test-migrate-down:
+migrate-test-down:
 	migrate -path migrations -database \
 		"postgres://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE_TEST)?sslmode=disable" down
 

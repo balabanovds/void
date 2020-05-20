@@ -40,6 +40,21 @@ func (s *Storage) Users() domain.UserRepo {
 	return s.userRepo
 }
 
+func (s *Storage) openURL(url string) error {
+	db, err := sql.Open("postgres", url)
+	if err != nil {
+		return err
+	}
+
+	if err := db.Ping(); err != nil {
+		return err
+	}
+	s.db = db
+
+	return nil
+
+}
+
 // Open Postgres SQL pool
 func (s *Storage) Open() error {
 	dsn := fmt.Sprintf(
@@ -50,15 +65,9 @@ func (s *Storage) Open() error {
 		s.config.SQL.Password,
 		s.config.SQL.DBName)
 
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
+	if err := s.openURL(dsn); err != nil {
 		return err
 	}
-
-	if err := db.Ping(); err != nil {
-		return err
-	}
-	s.db = db
 
 	s.log.Info().Msgf("connected to '%s' at %s:%d",
 		s.config.SQL.DBName,

@@ -8,4 +8,5 @@ require (
 	github.com/lib/pq v1.5.2
 	github.com/mitchellh/mapstructure v1.3.0 // indirect
 	github.com/rs/zerolog v1.18.0
+	github.com/stretchr/testify v1.5.1
 )
