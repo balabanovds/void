@@ -6,11 +6,11 @@ type Config struct {
 }
 
 type sqlConfig struct {
-	Driver   string   `koanf:"driver"`
 	Host     string   `koanf:"host"`
 	Port     int      `koanf:"port"`
 	User     string   `koanf:"user"`
 	Password string   `koanf:"-"`
+	DBName   string   `koanf:"db-name"`
 	Options  []string `koanf:"options"`
 }
 
@@ -18,11 +18,11 @@ type sqlConfig struct {
 func NewConfig() *Config {
 	return &Config{
 		SQL: sqlConfig{
-			Driver:   "postgres",
 			Host:     "localhost",
 			Port:     5432,
 			User:     "void",
 			Password: "void123",
+			DBName:   "void_test",
 		},
 	}
 }

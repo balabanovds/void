@@ -2,7 +2,9 @@ package domain
 
 // Storage ...
 type Storage interface {
-	Users()
+	Users() UserRepo
+	Open() error
+	Close()
 }
 
 // UserRepo is a contarct for user reposotories implementations

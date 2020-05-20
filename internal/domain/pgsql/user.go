@@ -1,4 +1,4 @@
-package sqlrepo
+package pgsql
 
 import "database/sql"
 
