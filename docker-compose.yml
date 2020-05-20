@@ -1,0 +1,31 @@
+version: '3.3'
+
+services:
+  posgres:
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${PG_ADMIN}
+      POSTGRES_PASSWORD: ${PG_ADMIN_PASSWORD}
+    ports:
+      - '5432:5432'
+    networks:
+      - backend
+  redis:
+    image: redis:alpine
+    restart: always
+    volumes:
+      - dbdata:/data
+      # - ${PWD}/config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - '6379:6379'
+    networks:
+      - backend
+volumes: 
+  dbdata:
+
+networks:
+  backend:
+    driver: bridge
