@@ -1,6 +1,9 @@
 package apiserver
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/balabanovds/void/internal/domain"
 	"github.com/balabanovds/void/internal/server"
 	"github.com/rs/zerolog"
@@ -27,5 +30,8 @@ func New(config *server.Config, storage domain.Storage, logger zerolog.Logger) *
 
 // Start API server instance
 func (s *APIServer) Start() error {
-	return nil
+	addr := fmt.Sprintf("%s:%d", s.config.Hostname, s.config.Port)
+
+	s.log.Info().Msgf("API server is running on http://%s", addr)
+	return http.ListenAndServe(addr, s.routes())
 }

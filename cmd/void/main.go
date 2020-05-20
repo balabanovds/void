@@ -12,6 +12,7 @@ import (
 	"github.com/balabanovds/void/internal/domain"
 	"github.com/balabanovds/void/internal/domain/pgsql"
 	"github.com/balabanovds/void/internal/server"
+	"github.com/balabanovds/void/internal/server/apiserver"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
@@ -75,12 +76,11 @@ func main() {
 	}
 	defer storage.Close()
 
-	logger.Info().Msgf("connected to '%s' at %s:%d\n",
-		appCfg.StorageCfg.SQL.DBName,
-		appCfg.StorageCfg.SQL.Host,
-		appCfg.StorageCfg.SQL.Port,
-	)
 	// Init server
+	server := apiserver.New(appCfg.ServerCfg, storage, logger)
+	if err := server.Start(); err != nil {
+		logger.Fatal().Str("main", "server").Msg(err.Error())
+	}
 }
 
 func unmarshalConfig(cfg *appConfig) error {

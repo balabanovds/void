@@ -60,6 +60,12 @@ func (s *Storage) Open() error {
 	}
 	s.db = db
 
+	s.log.Info().Msgf("connected to '%s' at %s:%d",
+		s.config.SQL.DBName,
+		s.config.SQL.Host,
+		s.config.SQL.Port,
+	)
+
 	return nil
 }
 
