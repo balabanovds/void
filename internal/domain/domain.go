@@ -12,13 +12,11 @@ type Storage interface {
 // UserRepo is a contract for user reposotories implementations
 type UserRepo interface {
 	// Create user and returning created user from DB
-	Create(email, password string) (models.User, error)
-	// Get by id
-	Get(id int) (models.User, error)
+	Create(email string, hashPassword []byte) (models.User, error)
 	// GetByEmail ...
-	GetByEmail(email string) (models.User, error)
+	Get(email string) (models.User, error)
 	// Update user HashedPassword and Active state only
-	Update(user *models.User, newHashPassword string, active bool) error
+	Update(user *models.User, newHashPassword []byte, active bool) error
 	// Delete by id
-	Delete(id int)
+	Delete(email string)
 }

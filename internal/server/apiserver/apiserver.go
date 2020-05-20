@@ -6,13 +6,14 @@ import (
 
 	"github.com/balabanovds/void/internal/domain"
 	"github.com/balabanovds/void/internal/server"
+	"github.com/balabanovds/void/internal/service"
 	"github.com/rs/zerolog"
 )
 
 // APIServer RESTful implementation
 type APIServer struct {
 	config  *server.Config
-	storage domain.Storage
+	service *service.Service
 	log     zerolog.Logger
 	debug   zerolog.Logger
 }
@@ -22,7 +23,7 @@ func New(config *server.Config, storage domain.Storage, logger zerolog.Logger) *
 	l := logger.With().Str("server", "API").Logger()
 	return &APIServer{
 		config:  config,
-		storage: storage,
+		service: service.New(storage, logger),
 		log:     l,
 		debug:   l.With().Caller().Stack().Logger(),
 	}
