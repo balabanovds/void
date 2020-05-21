@@ -1,20 +1,33 @@
-package pgsql_test
+package pgsql
 
 import (
 	"testing"
 
 	"github.com/balabanovds/void/internal/domain"
-	"github.com/balabanovds/void/internal/domain/pgsql"
 	"github.com/balabanovds/void/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUserRepo_Create(t *testing.T) {
-	u := models.TestUser(t)
-	s, cleanup := pgsql.TestDB(t, databaseUrl)
-	defer cleanup("users")
+var (
+	ts TestSuite
+)
 
-	createdUser, err := s.Users().Create(u.Email, u.HashedPassword)
+func prepareData(t *testing.T) (domain.Storage, models.User, func()) {
+	ts = NewTestSuite(t)
+
+	user, err := ts.Storage.Users().Create(ts.User.Email, ts.User.HashedPassword)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return ts.Storage, user, ts.Close
+}
+
+func TestUserRepo_Create(t *testing.T) {
+	ts := NewTestSuite(t)
+	defer ts.Close()
+
+	createdUser, err := ts.Storage.Users().Create(ts.User.Email, ts.User.HashedPassword)
 
 	assert.NoError(t, err)
 	assert.NotZero(t, createdUser.ID)
@@ -22,24 +35,18 @@ func TestUserRepo_Create(t *testing.T) {
 }
 
 func TestUserRepo_CreateDuplicatedEmail(t *testing.T) {
-	u := models.TestUser(t)
-	s, cleanup := pgsql.TestDB(t, databaseUrl)
-	defer cleanup("users")
+	ts := NewTestSuite(t)
+	defer ts.Close()
 
-	createdUser, err := s.Users().Create(u.Email, u.HashedPassword)
-
-	assert.NoError(t, err)
-	assert.NotZero(t, createdUser.ID)
-
-	_, err = s.Users().Create(u.Email, []byte("p"))
+	_, _ = ts.Storage.Users().Create(ts.User.Email, ts.User.HashedPassword)
+	_, err := ts.Storage.Users().Create(ts.User.Email, []byte("p"))
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, domain.ErrDuplicateEmail.Error())
-
 }
 
 func TestUserRepo_GetByEmail(t *testing.T) {
-	s, u, cl := getTestData(t)
+	s, u, cl := prepareData(t)
 	defer cl()
 
 	gotUser, err := s.Users().Get(u.Email)
@@ -50,7 +57,7 @@ func TestUserRepo_GetByEmail(t *testing.T) {
 }
 
 func TestUserRepo_GetByEmailNotFound(t *testing.T) {
-	s, cleanup := pgsql.TestDB(t, databaseUrl)
+	s, cleanup := TestDB(t)
 	defer cleanup("users")
 
 	_, err := s.Users().Get("1")
@@ -60,7 +67,7 @@ func TestUserRepo_GetByEmailNotFound(t *testing.T) {
 }
 
 func TestUserRepo_Update(t *testing.T) {
-	s, user, cl := getTestData(t)
+	s, user, cl := prepareData(t)
 	defer cl()
 
 	newActive := !user.Active
@@ -80,7 +87,7 @@ func TestUserRepo_Update(t *testing.T) {
 }
 
 func TestUserRepo_Delete(t *testing.T) {
-	s, u, cl := getTestData(t)
+	s, u, cl := prepareData(t)
 	defer cl()
 
 	s.Users().Delete(u.Email)
@@ -89,18 +96,4 @@ func TestUserRepo_Delete(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, domain.ErrNotFound.Error())
-}
-
-func getTestData(t *testing.T) (domain.Storage, models.User, func()) {
-	u := models.TestUser(t)
-	s, cleanup := pgsql.TestDB(t, databaseUrl)
-
-	user, err := s.Users().Create(u.Email, u.HashedPassword)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return s, user, func() {
-		cleanup("users")
-	}
 }

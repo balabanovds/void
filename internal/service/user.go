@@ -91,7 +91,7 @@ func (s *UserService) UpdatePassword(ctx context.Context, email, password string
 
 // ToggleActive state (only admin allowed)
 func (s *UserService) ToggleActive(ctx context.Context, email string) error {
-	if !isAdmimCtx(ctx) {
+	if !isAdminCtx(ctx) {
 		return ErrNotAllowed
 	}
 
@@ -100,14 +100,16 @@ func (s *UserService) ToggleActive(ctx context.Context, email string) error {
 		return err
 	}
 
-	s.repo.Update(&u, nil, !u.Active)
-
+	err = s.repo.Update(&u, nil, !u.Active)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // Delete can do self or admin
 func (s *UserService) Delete(ctx context.Context, email string) error {
-	if !isSelfCtx(ctx, email) || !isAdmimCtx(ctx) {
+	if !isSelfCtx(ctx, email) && !isAdminCtx(ctx) {
 		return ErrNotAllowed
 	}
 
@@ -123,6 +125,10 @@ func isSelfCtx(ctx context.Context, email string) bool {
 	return ctxEmail == email
 }
 
-func isAdmimCtx(ctx context.Context) bool {
-	return ctx.Value(CtxIsAdmin).(bool)
+func isAdminCtx(ctx context.Context) bool {
+	isAdmin, ok := ctx.Value(CtxIsAdmin).(bool)
+	if !ok {
+		return false
+	}
+	return isAdmin
 }

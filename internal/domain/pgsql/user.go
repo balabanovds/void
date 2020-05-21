@@ -25,9 +25,9 @@ func (r *userRepo) Create(email string, hPassword []byte) (models.User, error) {
 
 	if err := r.db.QueryRow(
 		"insert into users (email, hashed_password, created) "+
-			"values ($1, $2, now()) returning id, active",
+			"values ($1, $2, now()) returning id, active, created",
 		email, hPassword,
-	).Scan(&u.ID, &u.Active); err != nil {
+	).Scan(&u.ID, &u.Active, &u.Created); err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
 			return models.User{}, domain.ErrDuplicateEmail
 		}
