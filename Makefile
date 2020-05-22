@@ -19,6 +19,14 @@ migrate-test-down:
 	migrate -path migrations -database \
 		"postgres://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE_TEST)?sslmode=disable" down
 
+migrate-up:
+	migrate -path migrations -database \
+		"postgres://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE)?sslmode=disable" up
+
+migrate-down:
+	migrate -path migrations -database \
+		"postgres://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE)?sslmode=disable" down
+
 docker-up:
 	docker-compose up
 

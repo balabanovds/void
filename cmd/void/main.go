@@ -52,20 +52,20 @@ func main() {
 
 	flag.Parse()
 
+	// logger
+	logger, err := newLogger(logFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if dbPassword == "" {
-		log.Println("db password was not set explicitly, default used")
+		logger.Warn().Msg("db password was not set explicitly, default used")
 	} else {
 		appCfg.StorageCfg.SQL.Password = dbPassword
 	}
 
 	// parse config file
 	if err := unmarshalConfig(&appCfg); err != nil {
-		log.Fatal(err)
-	}
-
-	// logger
-	logger, err := newLogger(logFile)
-	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -77,9 +77,9 @@ func main() {
 	defer storage.Close()
 
 	// Init server
-	server := apiserver.New(appCfg.ServerCfg, storage, logger)
-	if err := server.Start(); err != nil {
-		logger.Fatal().Str("main", "server").Msg(err.Error())
+	srv := apiserver.New(appCfg.ServerCfg, storage, logger)
+	if err := srv.Start(); err != nil {
+		logger.Fatal().Str("main", "srv").Msg(err.Error())
 	}
 }
 
@@ -126,8 +126,11 @@ func newLogger(file string) (zerolog.Logger, error) {
 		return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
 	}
 	output.FormatFieldName = func(i interface{}) string {
-		return fmt.Sprintf("%s:", i)
+		return strings.ToUpper(fmt.Sprintf("<%s:", i))
+	}
+	output.FormatFieldValue = func(i interface{}) string {
+		return strings.ToUpper(fmt.Sprintf("%s>", i))
 	}
 
-	return zerolog.New(output).With().Timestamp().Logger(), nil
+	return zerolog.New(output).With().Timestamp().Str("app", "main").Logger(), nil
 }

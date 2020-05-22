@@ -6,4 +6,4 @@ storage:
         host: localhost
         port: 5432
         user: void
-        db-name: void
+        db-name: void_test

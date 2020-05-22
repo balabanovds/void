@@ -16,23 +16,20 @@ type Storage struct {
 	db       *sql.DB
 	userRepo *userRepo
 	log      zerolog.Logger
-	debug    zerolog.Logger
 }
 
 // New Storage
 func New(config *domain.Config, logger zerolog.Logger) *Storage {
-	l := logger.With().Str("storage", "PSQL").Logger()
 	return &Storage{
 		config: config,
-		log:    l,
-		debug:  l.With().Caller().Stack().Logger(),
+		log:    logger.With().Str("storage", "psql").Logger(),
 	}
 }
 
 // Users return users repository SQL implementation
 func (s *Storage) Users() domain.UserRepo {
 	if s.db == nil {
-		s.debug.Fatal().Msg("sql connection not opened")
+		s.log.Fatal().Msg("sql connection not opened")
 	}
 	if s.userRepo == nil {
 		s.userRepo = newUserRepo(s.db)

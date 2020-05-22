@@ -2,6 +2,8 @@ package apiserver
 
 import (
 	"fmt"
+	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	"net/http"
 
 	"github.com/balabanovds/void/internal/domain"
@@ -12,20 +14,24 @@ import (
 
 // APIServer RESTful implementation
 type APIServer struct {
-	config  *server.Config
-	service *service.Service
-	log     zerolog.Logger
-	debug   zerolog.Logger
+	config       *server.Config
+	service      *service.Service
+	sessionStore sessions.Store
+	log          zerolog.Logger
 }
+
+var (
+	sessionKey []byte
+)
 
 // New API server instance
 func New(config *server.Config, storage domain.Storage, logger zerolog.Logger) *APIServer {
-	l := logger.With().Str("server", "API").Logger()
+	sessionKey = securecookie.GenerateRandomKey(32)
 	return &APIServer{
-		config:  config,
-		service: service.New(storage, logger),
-		log:     l,
-		debug:   l.With().Caller().Stack().Logger(),
+		config:       config,
+		service:      service.New(storage, logger),
+		sessionStore: sessions.NewCookieStore(sessionKey),
+		log:          logger.With().Str("server", "api").Logger(),
 	}
 }
 

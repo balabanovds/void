@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/balabanovds/void/internal/server/ctxHelper"
 
 	"github.com/balabanovds/void/internal/domain"
 	"github.com/balabanovds/void/internal/models"
@@ -24,7 +25,10 @@ func newUserService(service *Service) *UserService {
 	}
 }
 
-// Create new user
+// Create new user.
+// Client errors:
+// - ErrPasswdNotMatch,
+// - ErrDuplicateEmail,
 func (s *UserService) Create(email, password, confirmPassword string) (models.User, error) {
 	if password != confirmPassword {
 		return models.User{}, ErrPasswdNotMatch
@@ -71,7 +75,7 @@ func (s *UserService) IsAdmin(email string) (bool, error) {
 
 // UpdatePassword only self can do
 func (s *UserService) UpdatePassword(ctx context.Context, email, password string) error {
-	if !isSelfCtx(ctx, email) {
+	if !ctxHelper.IsEmailMatch(ctx, email) {
 		return ErrNotAllowed
 	}
 
@@ -91,7 +95,7 @@ func (s *UserService) UpdatePassword(ctx context.Context, email, password string
 
 // ToggleActive state (only admin allowed)
 func (s *UserService) ToggleActive(ctx context.Context, email string) error {
-	if !isAdminCtx(ctx) {
+	if !ctxHelper.IsAdmin(ctx) {
 		return ErrNotAllowed
 	}
 
@@ -109,26 +113,10 @@ func (s *UserService) ToggleActive(ctx context.Context, email string) error {
 
 // Delete can do self or admin
 func (s *UserService) Delete(ctx context.Context, email string) error {
-	if !isSelfCtx(ctx, email) && !isAdminCtx(ctx) {
+	if !ctxHelper.IsEmailMatch(ctx, email) && !ctxHelper.IsAdmin(ctx) {
 		return ErrNotAllowed
 	}
 
 	s.repo.Delete(email)
 	return nil
-}
-
-func isSelfCtx(ctx context.Context, email string) bool {
-	ctxEmail, ok := ctx.Value(CtxEmail).(string)
-	if !ok {
-		return false
-	}
-	return ctxEmail == email
-}
-
-func isAdminCtx(ctx context.Context) bool {
-	isAdmin, ok := ctx.Value(CtxIsAdmin).(bool)
-	if !ok {
-		return false
-	}
-	return isAdmin
 }

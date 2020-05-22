@@ -5,16 +5,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// CtxKey service context keys
-type CtxKey uint8
-
-const (
-	// CtxIsAdmin bool
-	CtxIsAdmin CtxKey = iota
-	// CtxEmail string - email of currently logged in user
-	CtxEmail
-)
-
 // Service ...
 type Service struct {
 	storage     domain.Storage

@@ -1,15 +1,21 @@
 package apiserver
 
 import (
+	"github.com/gorilla/handlers"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 func (s *APIServer) routes() http.Handler {
-	mux := mux.NewRouter()
+	router := mux.NewRouter()
 
-	mux.HandleFunc("/", s.handleHome())
+	router.Use(jsonContent)
+	router.Use(s.setRequestID)
+	router.Use(handlers.CORS(handlers.AllowedOrigins([]string{"*"})))
 
-	return mux
+	router.HandleFunc("/", s.handleHome())
+	router.HandleFunc("/signup", s.handleSignUp()).Methods("POST")
+
+	return router
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/balabanovds/void/internal/service"
 	"testing"
 
+	"github.com/balabanovds/void/internal/server/ctxHelper"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -84,13 +86,13 @@ func TestUserService_UpdatePassword(t *testing.T) {
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
 
 	// try as admin but not self - should fail
-	ctx = context.WithValue(ctx, service.CtxIsAdmin, true)
+	ctx = context.WithValue(ctx, ctxHelper.CtxKeyIsAdmin, true)
 	err = s.Users().UpdatePassword(ctx, user.Email, newPass)
 	assert.Error(t, err)
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
 
 	// try as self - should be ok
-	ctx = context.WithValue(context.Background(), service.CtxEmail, user.Email)
+	ctx = context.WithValue(context.Background(), ctxHelper.CtxKeyEmail, user.Email)
 	err = s.Users().UpdatePassword(ctx, user.Email, newPass)
 	assert.NoError(t, err)
 
@@ -105,13 +107,13 @@ func TestUserService_ToggleActive(t *testing.T) {
 	defer cl()
 
 	// try to toggle active by self - should fail
-	ctx := context.WithValue(context.Background(), service.CtxEmail, user.Email)
+	ctx := context.WithValue(context.Background(), ctxHelper.CtxKeyEmail, user.Email)
 	err := s.Users().ToggleActive(ctx, user.Email)
 	assert.Error(t, err)
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
 
 	// try to toggle active by admin - should be ok
-	ctx = context.WithValue(ctx, service.CtxIsAdmin, true)
+	ctx = context.WithValue(ctx, ctxHelper.CtxKeyIsAdmin, true)
 	err = s.Users().ToggleActive(ctx, user.Email)
 	assert.NoError(t, err)
 
@@ -125,7 +127,7 @@ func TestUserService_Delete(t *testing.T) {
 	defer cl()
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, service.CtxEmail, user.Email+"wrong")
+	ctx = context.WithValue(ctx, ctxHelper.CtxKeyEmail, user.Email+"wrong")
 
 	// try to delete not self and not admin - should fail
 	err := s.Users().Delete(ctx, user.Email)
@@ -133,7 +135,7 @@ func TestUserService_Delete(t *testing.T) {
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
 
 	// try to delete by admin - should be ok
-	ctx = context.WithValue(context.Background(), service.CtxIsAdmin, true)
+	ctx = context.WithValue(context.Background(), ctxHelper.CtxKeyIsAdmin, true)
 	err = s.Users().Delete(ctx, user.Email)
 	assert.NoError(t, err)
 
@@ -144,7 +146,7 @@ func TestUserService_Delete(t *testing.T) {
 	// create again and try to delete by self
 	_, err = s.Users().Create(email, password, passwordConfirm)
 	assert.NoError(t, err)
-	ctx = context.WithValue(context.Background(), service.CtxEmail, user.Email)
+	ctx = context.WithValue(context.Background(), ctxHelper.CtxKeyEmail, user.Email)
 	err = s.Users().Delete(ctx, user.Email)
 	assert.NoError(t, err)
 
