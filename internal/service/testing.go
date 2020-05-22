@@ -7,25 +7,25 @@ import (
 	"testing"
 )
 
-type TestSuite struct {
+type ServiceTestSuite struct {
 	Service *Service
 	storage pgsql.TestSuite
 }
 
-func NewTestSuite(t *testing.T) TestSuite {
+func NewTestSuite(t *testing.T) ServiceTestSuite {
 	t.Helper()
 
 	ts := pgsql.NewTestSuite(t)
-	return TestSuite{
+	return ServiceTestSuite{
 		Service: New(ts.Storage, zerolog.Nop()),
 		storage: ts,
 	}
 }
 
-func (s *TestSuite) CreateUser(email, password string) (models.User, error) {
+func (s *ServiceTestSuite) CreateUser(email, password string) (models.User, error) {
 	return s.Service.Users().Create(email, password, password)
 }
 
-func (s *TestSuite) Close() {
+func (s *ServiceTestSuite) Close() {
 	s.storage.Close()
 }

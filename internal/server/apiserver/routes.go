@@ -8,14 +8,19 @@ import (
 )
 
 func (s *APIServer) routes() http.Handler {
-	router := mux.NewRouter()
+	r := mux.NewRouter()
 
-	router.Use(jsonContent)
-	router.Use(s.setRequestID)
-	router.Use(handlers.CORS(handlers.AllowedOrigins([]string{"*"})))
+	r.Use(jsonContent)
+	r.Use(s.setRequestID)
+	r.Use(handlers.CORS(handlers.AllowedOrigins([]string{"*"})))
 
-	router.HandleFunc("/", s.handleHome())
-	router.HandleFunc("/signup", s.handleSignUp()).Methods("POST")
+	r.HandleFunc("/", s.handleHome())
+	r.HandleFunc("/signup", s.handleSignUp()).Methods("POST")
+	r.HandleFunc("/login", s.handleLogin()).Methods("POST")
 
-	return router
+	private := r.PathPrefix("/private").Subrouter()
+	private.Use(s.authenticateUser)
+	private.HandleFunc("/skud2", s.handleSKUD()).Methods("POST")
+
+	return r
 }

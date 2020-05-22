@@ -27,8 +27,8 @@ func newUserService(service *Service) *UserService {
 
 // Create new user.
 // Client errors:
-// - ErrPasswdNotMatch,
-// - ErrDuplicateEmail,
+// service.ErrPasswdNotMatch,
+// domain.ErrDuplicateEmail
 func (s *UserService) Create(email, password, confirmPassword string) (models.User, error) {
 	if password != confirmPassword {
 		return models.User{}, ErrPasswdNotMatch
@@ -44,6 +44,9 @@ func (s *UserService) Create(email, password, confirmPassword string) (models.Us
 }
 
 // Authenticate while logging user
+// Client errors:
+// domain.ErrNotFound,
+// service.ErrFailedAuthenticate
 func (s *UserService) Authenticate(email, password string) (models.User, error) {
 	u, err := s.GetByEmail(email)
 	if err != nil {
@@ -63,6 +66,8 @@ func (s *UserService) Authenticate(email, password string) (models.User, error) 
 }
 
 // GetByEmail ...
+// Client errors:
+// domain.ErrNotFound
 func (s *UserService) GetByEmail(email string) (models.User, error) {
 	return s.repo.Get(email)
 }
@@ -74,6 +79,8 @@ func (s *UserService) IsAdmin(email string) (bool, error) {
 }
 
 // UpdatePassword only self can do
+// Client errors:
+// service.ErrNotAllowed
 func (s *UserService) UpdatePassword(ctx context.Context, email, password string) error {
 	if !ctxHelper.IsEmailMatch(ctx, email) {
 		return ErrNotAllowed
@@ -94,6 +101,8 @@ func (s *UserService) UpdatePassword(ctx context.Context, email, password string
 }
 
 // ToggleActive state (only admin allowed)
+// Client errors:
+// service.ErrNotAllowed
 func (s *UserService) ToggleActive(ctx context.Context, email string) error {
 	if !ctxHelper.IsAdmin(ctx) {
 		return ErrNotAllowed
@@ -112,6 +121,8 @@ func (s *UserService) ToggleActive(ctx context.Context, email string) error {
 }
 
 // Delete can do self or admin
+// Client errors:
+// service.ErrNotAllowed
 func (s *UserService) Delete(ctx context.Context, email string) error {
 	if !ctxHelper.IsEmailMatch(ctx, email) && !ctxHelper.IsAdmin(ctx) {
 		return ErrNotAllowed

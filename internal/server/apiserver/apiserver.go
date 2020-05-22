@@ -2,7 +2,7 @@ package apiserver
 
 import (
 	"fmt"
-	"github.com/gorilla/securecookie"
+	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 	"net/http"
 
@@ -21,16 +21,17 @@ type APIServer struct {
 }
 
 var (
-	sessionKey []byte
+	sessionKey   string
+	sessionEmail = "user_email"
 )
 
 // New API server instance
 func New(config *server.Config, storage domain.Storage, logger zerolog.Logger) *APIServer {
-	sessionKey = securecookie.GenerateRandomKey(32)
+	sessionKey = uuid.New().String()
 	return &APIServer{
 		config:       config,
 		service:      service.New(storage, logger),
-		sessionStore: sessions.NewCookieStore(sessionKey),
+		sessionStore: sessions.NewCookieStore([]byte(sessionKey)),
 		log:          logger.With().Str("server", "api").Logger(),
 	}
 }
