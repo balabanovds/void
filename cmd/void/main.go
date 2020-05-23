@@ -19,12 +19,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type app struct {
-	logger  *zerolog.Logger
-	server  server.Server
-	storage domain.Storage
-}
-
 type appConfig struct {
 	StorageCfg *domain.Config `koanf:"storage"`
 	ServerCfg  *server.Config `koanf:"server"`
@@ -84,7 +78,7 @@ func main() {
 }
 
 func unmarshalConfig(cfg *appConfig) error {
-	k := koanf.New("::")
+	k := koanf.New(".")
 	parser := yaml.Parser()
 	if err := k.Load(file.Provider(confFile), parser); err != nil {
 		return fmt.Errorf("error loading config: %v", err)

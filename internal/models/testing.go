@@ -8,6 +8,7 @@ func TestUser(t *testing.T) *User {
 
 	return &User{
 		Email:          "test@mail.com",
+		Password:       "password123",
 		HashedPassword: []byte("passw"),
 	}
 }
