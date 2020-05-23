@@ -1,9 +1,13 @@
 server:
-    hostname: localhost
-    port: 7000
+  hostname: localhost
+  port: 7000
 storage:
-    sql: 
-        host: localhost
-        port: 5432
-        user: void
-        db-name: void_test
+  sql:
+    host: localhost
+    port: 5432
+    user: void
+    db-name: void_test
+mail:
+  server: mailrelay.int.nokia.com
+  sender: void@ion-cts-spb.int.net.nokia.com
+  mail-templates-dir: ./templates/mail
