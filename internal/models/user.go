@@ -16,6 +16,16 @@ type User struct {
 	Created        time.Time `json:"created"`
 }
 
+type NewUser struct {
+	Email          string    `json:"email"`
+	HashedPassword []byte    `json:"-"`
+}
+
+type UpdatedUser struct {
+	HashedPassword []byte    `json:"-"`
+	Active         bool      `json:"active"`
+}
+
 func (u *User) Sanitize() {
 	u.Password = ""
 }

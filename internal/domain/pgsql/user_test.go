@@ -15,7 +15,12 @@ var (
 func prepareData(t *testing.T) (domain.Storage, models.User, func()) {
 	ts = NewTestSuite(t)
 
-	user, err := ts.Storage.Users().Create(ts.User.Email, ts.User.HashedPassword)
+	newUser := models.NewUser{
+		Email: ts.User.Email,
+		HashedPassword: ts.User.HashedPassword,
+	}
+
+	user, err := ts.Storage.Users().Create(newUser)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +32,12 @@ func TestUserRepo_Create(t *testing.T) {
 	ts := NewTestSuite(t)
 	defer ts.Close()
 
-	createdUser, err := ts.Storage.Users().Create(ts.User.Email, ts.User.HashedPassword)
+	newUser := models.NewUser{
+		Email: ts.User.Email,
+		HashedPassword: ts.User.HashedPassword,
+	}
+
+	createdUser, err := ts.Storage.Users().Create(newUser)
 
 	assert.NoError(t, err)
 	assert.NotZero(t, createdUser.ID)
@@ -38,8 +48,14 @@ func TestUserRepo_CreateDuplicatedEmail(t *testing.T) {
 	ts := NewTestSuite(t)
 	defer ts.Close()
 
-	_, _ = ts.Storage.Users().Create(ts.User.Email, ts.User.HashedPassword)
-	_, err := ts.Storage.Users().Create(ts.User.Email, []byte("p"))
+	newUser := models.NewUser{
+		Email: ts.User.Email,
+		HashedPassword: ts.User.HashedPassword,
+	}
+
+	_, _ = ts.Storage.Users().Create(newUser)
+	newUser.HashedPassword = []byte("p")
+	_, err := ts.Storage.Users().Create(newUser)
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, domain.ErrDuplicateEmail.Error())

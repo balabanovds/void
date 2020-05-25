@@ -8,7 +8,7 @@ import (
 // Service ...
 type Service struct {
 	storage     domain.Storage
-	userservice *UserService
+	userService *UserService
 	log         zerolog.Logger
 	debug       zerolog.Logger
 }
@@ -25,8 +25,8 @@ func New(storage domain.Storage, logger zerolog.Logger) *Service {
 
 // Users service
 func (s *Service) Users() *UserService {
-	if s.userservice == nil {
-		s.userservice = newUserService(s)
+	if s.userService == nil {
+		s.userService = newUserService(s)
 	}
-	return s.userservice
+	return s.userService
 }

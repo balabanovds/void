@@ -12,10 +12,11 @@ import (
 
 // Storage main struct containing all SQL repositories implementations
 type Storage struct {
-	config   *domain.Config
-	db       *sql.DB
-	userRepo *userRepo
-	log      zerolog.Logger
+	config      *domain.Config
+	db          *sql.DB
+	userRepo    *userRepo
+	profileRepo *profileRepo
+	log         zerolog.Logger
 }
 
 // New Storage
@@ -32,9 +33,19 @@ func (s *Storage) Users() domain.UserRepo {
 		s.log.Fatal().Msg("sql connection not opened")
 	}
 	if s.userRepo == nil {
-		s.userRepo = newUserRepo(s.db)
+		s.userRepo = newUserRepo(s)
 	}
 	return s.userRepo
+}
+
+func (s *Storage) Profiles() domain.ProfileRepo {
+	if s.db == nil {
+		s.log.Fatal().Msg("sql connection not opened")
+	}
+	if s.profileRepo == nil {
+		s.profileRepo = newProfileRepo(s.db)
+	}
+	return s.profileRepo
 }
 
 func (s *Storage) openURL(url string) error {
@@ -78,6 +89,6 @@ func (s *Storage) Open() error {
 // Close SQL pool
 func (s *Storage) Close() {
 	if s.db != nil {
-		s.db.Close()
+		_ = s.db.Close()
 	}
 }

@@ -17,6 +17,10 @@ insert into users (email, hashed_password, created, active)
 values ('some_email', 'десятьобезьян', now(), false)
 returning id;
 
+insert into profiles (email, first_name) VALUES ('some_email1', 'Vasya');
+
+truncate table users cascade ;
+
 insert into users (email, hashed_password, created, active) 
 values ('some_email', 'десятьобезьян', now(), false)
 returning id;
