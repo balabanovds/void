@@ -10,7 +10,7 @@ create table users
 create table roles
 (
     id smallint primary key not null,
-    role varchar(32)
+    value varchar(32)
 );
 
 insert into roles values
@@ -21,23 +21,24 @@ insert into roles values
 create table profiles
 (
     id serial primary key,
-    user_id int references users unique,
+    email varchar (255) unique not null references users(email) on delete cascade ,
     first_name varchar (255),
     last_name varchar(255),
     position varchar (255),
+    phone varchar(32),
     company_id int,
     z_code varchar(10),
-    manager_id int references profiles,
+    manager_email varchar (255) references profiles(email),
     role_id smallint references roles,
-    date_modified timestamp
+    modified_at timestamp
 );
 
 create table profiles_ru
 (
     id serial primary key,
-    profile_id int references profiles,
+    profile_id int not null unique references profiles on delete cascade ,
     first_name varchar (255),
     last_name varchar(255),
-    position varchar (255),
-    date_modified timestamp
+    patronymic varchar(255),
+    position varchar (255)
 );
