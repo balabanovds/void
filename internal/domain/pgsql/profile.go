@@ -134,6 +134,11 @@ func (r *profileRepo) Update(profile *models.Profile, upd models.UpdateProfile) 
 		return err
 	}
 
+	mgrMail := sql.NullString{
+		String: upd.ManagerEmail,
+		Valid:  upd.ManagerEmail != "",
+	}
+
 	if err := tx.QueryRow(
 		"UPDATE profiles SET first_name = $2, last_name = $3, position = $4, "+
 			"phone = $5, company_id = $6, z_code = $7, manager_email = $8, "+
@@ -145,9 +150,12 @@ func (r *profileRepo) Update(profile *models.Profile, upd models.UpdateProfile) 
 		upd.Phone,
 		upd.CompanyID,
 		upd.ZCode,
-		upd.ManagerEmail,
+		mgrMail,
 		upd.Role.ID).Scan(&profile.ModifiedAt); err != nil {
 		_ = tx.Rollback()
+		if strings.Contains(err.Error(), "violates foreign key constraint") {
+			return domain.ErrDependencyNotFound
+		}
 		return err
 	}
 
@@ -182,4 +190,48 @@ func (r *profileRepo) Update(profile *models.Profile, upd models.UpdateProfile) 
 		return err
 	}
 	return nil
+}
+
+func (r *profileRepo) GetAll() ([]models.Profile, error) {
+	var profiles []models.Profile
+
+	rows, err := r.db.Query(
+		"SELECT p.id, p.email, p.first_name, p.last_name, p.position, p.phone, " +
+			"p.company_id, p.z_code, p.manager_email, r.id, r.value, p.modified_at, " +
+			"ru.first_name, ru.last_name, ru.patronymic, ru.position " +
+			"FROM profiles p " +
+			"JOIN profiles_ru ru on p.id = ru.profile_id " +
+			"JOIN roles r on p.role_id = r.id")
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p models.Profile
+		if err := rows.Scan(&p.ID,
+			&p.Email,
+			&p.FirstName,
+			&p.LastName,
+			&p.Position,
+			&p.Phone,
+			&p.CompanyID,
+			&p.ZCode,
+			&p.ManagerEmail,
+			&p.Role.ID,
+			&p.Role.Value,
+			&p.ModifiedAt,
+			&p.Ru.FirstName,
+			&p.Ru.LastName,
+			&p.Ru.Patronymic,
+			&p.Ru.Position); err != nil {
+			return nil, err
+		}
+		profiles = append(profiles, p)
+	}
+
+	return profiles, nil
 }

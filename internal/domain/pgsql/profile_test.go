@@ -36,15 +36,13 @@ func TestProfileRepo_Get(t *testing.T) {
 	ts := NewTestSuite(t)
 	defer ts.Close()
 
-	user := ts.CreateDefaultUser(t)
-
 	profile := ts.CreateDefaultProfile(t)
 
-	_, err := ts.Storage.Profiles().Get(user.Email + "wrong")
+	_, err := ts.Storage.Profiles().Get(profile.Email + "wrong")
 	assert.Error(t, err)
 	assert.EqualError(t, err, domain.ErrNotFound.Error())
 
-	foundProfile, err := ts.Storage.Profiles().Get(user.Email)
+	foundProfile, err := ts.Storage.Profiles().Get(profile.Email)
 	assert.NoError(t, err)
 	assert.Equal(t, profile, foundProfile)
 }
@@ -77,4 +75,31 @@ func TestProfileRepo_Update(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, initProfile, p)
 
+	// check delete manager email
+	upd.ManagerEmail = ""
+
+	err = ts.Storage.Profiles().Update(&p, upd)
+	assert.NoError(t, err)
+	assert.True(t, p.ManagerEmail.Valid)
+	mgr, err := p.ManagerEmail.Value()
+	assert.NoError(t, err)
+	assert.Empty(t, mgr)
+
+	// check wrong manager email
+	upd.ManagerEmail = manProfile.Email + "wrong"
+	err = ts.Storage.Profiles().Update(&p, upd)
+	assert.Error(t, err)
+	assert.EqualError(t, err, domain.ErrDependencyNotFound.Error())
+}
+
+func TestProfileRepo_GetAll(t *testing.T) {
+	ts := NewTestSuite(t)
+	defer ts.Close()
+
+	_ = ts.CreateProfile(t, "mail1")
+	_ = ts.CreateProfile(t, "mail2")
+
+	ps, err := ts.Storage.Profiles().GetAll()
+	assert.NoError(t, err)
+	assert.Len(t, ps, 2)
 }
