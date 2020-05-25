@@ -32,17 +32,17 @@ type NewProfile struct {
 	Ru        ProfileRu `json:"ru"`
 }
 
-// UpdatedProfile describes which fields we can update
-type UpdatedProfile struct {
-	FirstName    string         `json:"first_name_en"`
-	LastName     string         `json:"last_name_en"`
-	Phone        string         `json:"phone"`
-	Position     string         `json:"position_en"`
-	CompanyID    int            `json:"company_id"`
-	ZCode        string         `json:"z_code"`
-	ManagerEmail sql.NullString `json:"manager_email"`
-	Role         Role           `json:"role"`
-	Ru           ProfileRu      `json:"ru"`
+// UpdateProfile describes which fields we can update
+type UpdateProfile struct {
+	FirstName    string    `json:"first_name_en"`
+	LastName     string    `json:"last_name_en"`
+	Phone        string    `json:"phone"`
+	Position     string    `json:"position_en"`
+	CompanyID    int       `json:"company_id"`
+	ZCode        string    `json:"z_code"`
+	ManagerEmail string    `json:"manager_email"`
+	Role         Role      `json:"role"`
+	Ru           ProfileRu `json:"ru"`
 }
 
 type ProfileRu struct {
@@ -53,7 +53,7 @@ type ProfileRu struct {
 }
 
 type Role struct {
-	ID int
+	ID    int
 	Value string
 }
 
@@ -62,12 +62,12 @@ var (
 		ID:    1,
 		Value: "engineer",
 	}
-	Manager  = Role{
-		ID: 2,
+	Manager = Role{
+		ID:    2,
 		Value: "manager",
 	}
-	Admin    = Role{
-		ID: 99,
+	Admin = Role{
+		ID:    99,
 		Value: "admin",
 	}
 )

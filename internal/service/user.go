@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/balabanovds/void/internal/server/ctxHelper"
 
 	"github.com/balabanovds/void/internal/domain"
@@ -40,7 +41,7 @@ func (s *UserService) Create(email, password, confirmPassword string) (models.Us
 		return models.User{}, err
 	}
 
-	return s.repo.Create(email, hash)
+	return s.repo.Create(models.NewUser{Email: email, HashedPassword: hash})
 }
 
 // Authenticate while logging user

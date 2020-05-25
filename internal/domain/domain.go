@@ -25,5 +25,5 @@ type UserRepo interface {
 type ProfileRepo interface {
 	Create(profile models.NewProfile) (models.Profile, error)
 	Get(email string) (models.Profile, error)
-	Update(profile *models.Profile, upd models.UpdatedProfile) error
+	Update(profile *models.Profile, upd models.UpdateProfile) error
 }

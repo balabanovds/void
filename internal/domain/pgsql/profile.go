@@ -3,9 +3,10 @@ package pgsql
 import (
 	"database/sql"
 	"errors"
+	"strings"
+
 	"github.com/balabanovds/void/internal/domain"
 	"github.com/balabanovds/void/internal/models"
-	"strings"
 )
 
 type profileRepo struct {
@@ -86,6 +87,7 @@ func (r *profileRepo) Create(pr models.NewProfile) (models.Profile, error) {
 	return profile, nil
 }
 
+// Get ...
 func (r *profileRepo) Get(email string) (models.Profile, error) {
 	p := models.Profile{}
 
@@ -93,8 +95,8 @@ func (r *profileRepo) Get(email string) (models.Profile, error) {
 		"SELECT p.id, p.email, p.first_name, p.last_name, p.position, p.phone, p.company_id, "+
 			"p.z_code, p.manager_email, r.id, r.value, p.modified_at, "+
 			"ru.first_name, ru.last_name, ru.patronymic, ru.position "+
-			"FROM profiles AS p " +
-			"JOIN roles AS r ON p.role_id = r.id " +
+			"FROM profiles AS p "+
+			"JOIN roles AS r ON p.role_id = r.id "+
 			"JOIN profiles_ru AS ru ON ru.profile_id = p.id "+
 			"WHERE p.email = $1", email).
 		Scan(
@@ -114,7 +116,6 @@ func (r *profileRepo) Get(email string) (models.Profile, error) {
 			&p.Ru.LastName,
 			&p.Ru.Patronymic,
 			&p.Ru.Position,
-
 		); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.Profile{}, domain.ErrNotFound
@@ -125,6 +126,60 @@ func (r *profileRepo) Get(email string) (models.Profile, error) {
 	return p, nil
 }
 
-func (r *profileRepo) Update(profile *models.Profile, upd models.UpdatedProfile) error {
+// Update profile that shared down the stack with updated profile
+// Client errors
+func (r *profileRepo) Update(profile *models.Profile, upd models.UpdateProfile) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err := tx.QueryRow(
+		"UPDATE profiles SET first_name = $2, last_name = $3, position = $4, "+
+			"phone = $5, company_id = $6, z_code = $7, manager_email = $8, "+
+			"role_id = $9, modified_at = now() WHERE email = $1 RETURNING modified_at",
+		profile.Email,
+		upd.FirstName,
+		upd.LastName,
+		upd.Position,
+		upd.Phone,
+		upd.CompanyID,
+		upd.ZCode,
+		upd.ManagerEmail,
+		upd.Role.ID).Scan(&profile.ModifiedAt); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if _, err := tx.Exec(
+		"UPDATE profiles_ru SET first_name = $2, last_name = $3, patronymic = $4, position = $5 "+
+			"WHERE profile_id = $1",
+		profile.ID,
+		upd.Ru.FirstName,
+		upd.Ru.LastName,
+		upd.Ru.Patronymic,
+		upd.Ru.Position); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// if db updated without errors than update profile
+	profile.FirstName = upd.FirstName
+	profile.LastName = upd.LastName
+	profile.Position = upd.Position
+	profile.Phone = upd.Phone
+	profile.CompanyID = upd.CompanyID
+	profile.ZCode = upd.ZCode
+	profile.ManagerEmail = sql.NullString{
+		String: upd.ManagerEmail,
+		Valid:  true,
+	}
+	profile.Role = upd.Role
+	profile.Ru = upd.Ru
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 	return nil
 }

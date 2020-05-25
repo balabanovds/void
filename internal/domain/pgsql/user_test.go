@@ -15,15 +15,7 @@ var (
 func prepareData(t *testing.T) (domain.Storage, models.User, func()) {
 	ts = NewTestSuite(t)
 
-	newUser := models.NewUser{
-		Email: ts.User.Email,
-		HashedPassword: ts.User.HashedPassword,
-	}
-
-	user, err := ts.Storage.Users().Create(newUser)
-	if err != nil {
-		t.Fatal(err)
-	}
+	user := ts.CreateDefaultUser(t)
 
 	return ts.Storage, user, ts.Close
 }
@@ -33,7 +25,7 @@ func TestUserRepo_Create(t *testing.T) {
 	defer ts.Close()
 
 	newUser := models.NewUser{
-		Email: ts.User.Email,
+		Email:          ts.User.Email,
 		HashedPassword: ts.User.HashedPassword,
 	}
 
@@ -49,7 +41,7 @@ func TestUserRepo_CreateDuplicatedEmail(t *testing.T) {
 	defer ts.Close()
 
 	newUser := models.NewUser{
-		Email: ts.User.Email,
+		Email:          ts.User.Email,
 		HashedPassword: ts.User.HashedPassword,
 	}
 
@@ -73,7 +65,7 @@ func TestUserRepo_GetByEmail(t *testing.T) {
 }
 
 func TestUserRepo_GetByEmailNotFound(t *testing.T) {
-	s, cleanup := TestDB(t)
+	s, cleanup := testDB(t)
 	defer cleanup("users")
 
 	_, err := s.Users().Get("1")

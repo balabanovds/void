@@ -38,6 +38,7 @@ func (s *Storage) Users() domain.UserRepo {
 	return s.userRepo
 }
 
+// Profiles provides access to Profiles repository
 func (s *Storage) Profiles() domain.ProfileRepo {
 	if s.db == nil {
 		s.log.Fatal().Msg("sql connection not opened")
