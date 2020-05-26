@@ -10,17 +10,17 @@ import (
 )
 
 type profileRepo struct {
-	db *sql.DB
+	s *Storage
 }
 
-func newProfileRepo(db *sql.DB) *profileRepo {
-	return &profileRepo{db: db}
+func newProfileRepo(s *Storage) *profileRepo {
+	return &profileRepo{s}
 }
 
 // Create new profile en and ru
 func (r *profileRepo) Create(pr models.NewProfile) (models.Profile, error) {
 
-	tx, err := r.db.Begin()
+	tx, err := r.s.db.Begin()
 	if err != nil {
 		return models.Profile{}, err
 	}
@@ -91,7 +91,7 @@ func (r *profileRepo) Create(pr models.NewProfile) (models.Profile, error) {
 func (r *profileRepo) Get(email string) (models.Profile, error) {
 	p := models.Profile{}
 
-	if err := r.db.QueryRow(
+	if err := r.s.db.QueryRow(
 		"SELECT p.id, p.email, p.first_name, p.last_name, p.position, p.phone, p.company_id, "+
 			"p.z_code, p.manager_email, r.id, r.value, p.modified_at, "+
 			"ru.first_name, ru.last_name, ru.patronymic, ru.position "+
@@ -127,31 +127,28 @@ func (r *profileRepo) Get(email string) (models.Profile, error) {
 }
 
 // Update profile that shared down the stack with updated profile
-// Client errors
 func (r *profileRepo) Update(profile *models.Profile, upd models.UpdateProfile) error {
-	tx, err := r.db.Begin()
+	tx, err := r.s.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	mgrMail := sql.NullString{
-		String: upd.ManagerEmail,
-		Valid:  upd.ManagerEmail != "",
-	}
+	upd.CopyToProfile(profile)
 
 	if err := tx.QueryRow(
 		"UPDATE profiles SET first_name = $2, last_name = $3, position = $4, "+
 			"phone = $5, company_id = $6, z_code = $7, manager_email = $8, "+
 			"role_id = $9, modified_at = now() WHERE email = $1 RETURNING modified_at",
 		profile.Email,
-		upd.FirstName,
-		upd.LastName,
-		upd.Position,
-		upd.Phone,
-		upd.CompanyID,
-		upd.ZCode,
-		mgrMail,
-		upd.Role.ID).Scan(&profile.ModifiedAt); err != nil {
+		profile.FirstName,
+		profile.LastName,
+		profile.Position,
+		profile.Phone,
+		profile.CompanyID,
+		profile.ZCode,
+		profile.ManagerEmail,
+		profile.Role.ID,
+	).Scan(&profile.ModifiedAt); err != nil {
 		_ = tx.Rollback()
 		if strings.Contains(err.Error(), "violates foreign key constraint") {
 			return domain.ErrDependencyNotFound
@@ -163,27 +160,13 @@ func (r *profileRepo) Update(profile *models.Profile, upd models.UpdateProfile) 
 		"UPDATE profiles_ru SET first_name = $2, last_name = $3, patronymic = $4, position = $5 "+
 			"WHERE profile_id = $1",
 		profile.ID,
-		upd.Ru.FirstName,
-		upd.Ru.LastName,
-		upd.Ru.Patronymic,
-		upd.Ru.Position); err != nil {
+		profile.Ru.FirstName,
+		profile.Ru.LastName,
+		profile.Ru.Patronymic,
+		profile.Ru.Position); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-
-	// if db updated without errors than update profile
-	profile.FirstName = upd.FirstName
-	profile.LastName = upd.LastName
-	profile.Position = upd.Position
-	profile.Phone = upd.Phone
-	profile.CompanyID = upd.CompanyID
-	profile.ZCode = upd.ZCode
-	profile.ManagerEmail = sql.NullString{
-		String: upd.ManagerEmail,
-		Valid:  true,
-	}
-	profile.Role = upd.Role
-	profile.Ru = upd.Ru
 
 	err = tx.Commit()
 	if err != nil {
@@ -192,10 +175,10 @@ func (r *profileRepo) Update(profile *models.Profile, upd models.UpdateProfile) 
 	return nil
 }
 
-func (r *profileRepo) GetAll() ([]models.Profile, error) {
+func (r *profileRepo) GetAll() []models.Profile {
 	var profiles []models.Profile
 
-	rows, err := r.db.Query(
+	rows, err := r.s.db.Query(
 		"SELECT p.id, p.email, p.first_name, p.last_name, p.position, p.phone, " +
 			"p.company_id, p.z_code, p.manager_email, r.id, r.value, p.modified_at, " +
 			"ru.first_name, ru.last_name, ru.patronymic, ru.position " +
@@ -203,10 +186,7 @@ func (r *profileRepo) GetAll() ([]models.Profile, error) {
 			"JOIN profiles_ru ru on p.id = ru.profile_id " +
 			"JOIN roles r on p.role_id = r.id")
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, domain.ErrNotFound
-		}
-		return nil, err
+		return nil
 	}
 	defer rows.Close()
 
@@ -228,10 +208,11 @@ func (r *profileRepo) GetAll() ([]models.Profile, error) {
 			&p.Ru.LastName,
 			&p.Ru.Patronymic,
 			&p.Ru.Position); err != nil {
-			return nil, err
+			r.s.log.Error().Caller().Err(err).Send()
+			continue
 		}
 		profiles = append(profiles, p)
 	}
 
-	return profiles, nil
+	return profiles
 }

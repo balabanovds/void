@@ -13,16 +13,16 @@ import (
 
 // UserService ...
 type UserService struct {
-	repo  domain.UserRepo
-	log   zerolog.Logger
-	debug zerolog.Logger
+	storage domain.Storage
+	log     zerolog.Logger
+	debug   func(err error)
 }
 
 func newUserService(service *Service) *UserService {
 	return &UserService{
-		repo:  service.storage.Users(),
-		log:   service.log,
-		debug: service.debug,
+		storage: service.storage,
+		log:     service.log,
+		debug:   service.debugLog,
 	}
 }
 
@@ -37,11 +37,11 @@ func (s *UserService) Create(email, password, confirmPassword string) (models.Us
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		s.debug.Error().Msg(err.Error())
+		s.debug(err)
 		return models.User{}, err
 	}
 
-	return s.repo.Create(models.NewUser{Email: email, HashedPassword: hash})
+	return s.storage.Users().Create(models.NewUser{Email: email, HashedPassword: hash})
 }
 
 // Authenticate while logging user
@@ -70,13 +70,7 @@ func (s *UserService) Authenticate(email, password string) (models.User, error) 
 // Client errors:
 // domain.ErrNotFound
 func (s *UserService) GetByEmail(email string) (models.User, error) {
-	return s.repo.Get(email)
-}
-
-// IsAdmin checks user rights
-func (s *UserService) IsAdmin(email string) (bool, error) {
-	//TODO when profiles will be ready
-	return false, nil
+	return s.storage.Users().Get(email)
 }
 
 // UpdatePassword only self can do
@@ -89,16 +83,16 @@ func (s *UserService) UpdatePassword(ctx context.Context, email, password string
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		s.debug.Error().Msg(err.Error())
+		s.debug(err)
 		return err
 	}
 
-	u, err := s.repo.Get(email)
+	u, err := s.GetByEmail(email)
 	if err != nil {
 		return err
 	}
 
-	return s.repo.Update(&u, hash, u.Active)
+	return s.storage.Users().Update(&u, hash, u.Active)
 }
 
 // ToggleActive state (only admin allowed)
@@ -109,12 +103,12 @@ func (s *UserService) ToggleActive(ctx context.Context, email string) error {
 		return ErrNotAllowed
 	}
 
-	u, err := s.repo.Get(email)
+	u, err := s.GetByEmail(email)
 	if err != nil {
 		return err
 	}
 
-	err = s.repo.Update(&u, nil, !u.Active)
+	err = s.storage.Users().Update(&u, nil, !u.Active)
 	if err != nil {
 		return err
 	}
@@ -129,6 +123,6 @@ func (s *UserService) Delete(ctx context.Context, email string) error {
 		return ErrNotAllowed
 	}
 
-	s.repo.Delete(email)
+	s.storage.Users().Delete(email)
 	return nil
 }

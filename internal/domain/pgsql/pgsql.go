@@ -44,7 +44,7 @@ func (s *Storage) Profiles() domain.ProfileRepo {
 		s.log.Fatal().Msg("sql connection not opened")
 	}
 	if s.profileRepo == nil {
-		s.profileRepo = newProfileRepo(s.db)
+		s.profileRepo = newProfileRepo(s)
 	}
 	return s.profileRepo
 }

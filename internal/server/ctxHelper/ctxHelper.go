@@ -1,12 +1,15 @@
 package ctxHelper
 
-import "context"
+import (
+	"context"
+	"github.com/balabanovds/void/internal/models"
+)
 
 type ctxKey uint16
 
 const (
 	CtxKeyEmail ctxKey = iota
-	CtxKeyIsAdmin
+	CtxKeyRole
 	CtxKeyRequestID
 )
 
@@ -19,11 +22,19 @@ func IsEmailMatch(ctx context.Context, email string) bool {
 }
 
 func IsAdmin(ctx context.Context) bool {
-	ctxAdmin, ok := ctx.Value(CtxKeyIsAdmin).(bool)
+	role, ok := ctx.Value(CtxKeyRole).(models.Role)
 	if !ok {
 		return false
 	}
-	return ctxAdmin
+	return role == models.Admin
+}
+
+func IsManager(ctx context.Context) bool {
+	role, ok := ctx.Value(CtxKeyRole).(models.Role)
+	if !ok {
+		return false
+	}
+	return role == models.Manager
 }
 
 func RequestID(ctx context.Context) string {

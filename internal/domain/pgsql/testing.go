@@ -37,6 +37,7 @@ func (ts *TestSuite) Close() {
 	ts.Storage.Close()
 }
 
+// CreateUser helper
 func (ts *TestSuite) CreateUser(t *testing.T, email string) models.User {
 	t.Helper()
 	if email == "" {
@@ -55,15 +56,21 @@ func (ts *TestSuite) CreateUser(t *testing.T, email string) models.User {
 	return u
 }
 
+// CreateDefaultUser helper
 func (ts *TestSuite) CreateDefaultUser(t *testing.T) models.User {
+	t.Helper()
 	return ts.CreateUser(t, "")
 }
 
+// CreateDefaultProfile helper
 func (ts *TestSuite) CreateDefaultProfile(t *testing.T) models.Profile {
+	t.Helper()
 	return ts.CreateProfile(t, "")
 }
 
+// CreateProfile helper
 func (ts *TestSuite) CreateProfile(t *testing.T, email string) models.Profile {
+	t.Helper()
 	if email == "" {
 		email = ts.User.Email
 	}

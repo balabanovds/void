@@ -52,6 +52,46 @@ type ProfileRu struct {
 	Position   string `json:"position"`
 }
 
+func (u UpdateProfile) CopyToProfile(profile *Profile) {
+	if u.FirstName != "" {
+		profile.FirstName = u.FirstName
+	}
+	if u.LastName != "" {
+		profile.LastName = u.LastName
+	}
+	if u.Position != "" {
+		profile.Position = u.Position
+	}
+	if u.Phone != "" {
+		profile.Phone = u.Phone
+	}
+	if u.CompanyID != 0 {
+		profile.CompanyID = u.CompanyID
+	}
+	if u.ZCode != "" {
+		profile.ZCode = u.ZCode
+	}
+	profile.ManagerEmail = sql.NullString{
+		String: u.ManagerEmail,
+		Valid:  u.ManagerEmail != "",
+	}
+	if u.Role.ID != 0 && u.Role.Value != "" {
+		profile.Role = u.Role
+	}
+	if u.Ru.FirstName != "" {
+		profile.Ru.FirstName = u.Ru.FirstName
+	}
+	if u.Ru.LastName != "" {
+		profile.Ru.LastName = u.Ru.LastName
+	}
+	if u.Ru.Patronymic != "" {
+		profile.Ru.Patronymic = u.Ru.Patronymic
+	}
+	if u.Ru.Position != "" {
+		profile.Ru.Position = u.Ru.Position
+	}
+}
+
 type Role struct {
 	ID    int
 	Value string

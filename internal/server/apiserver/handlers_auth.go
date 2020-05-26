@@ -11,7 +11,7 @@ import (
 
 func (s *APIServer) handleHome() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("home hit"))
+		http.Redirect(w, r, "/wiki", http.StatusSeeOther)
 	}
 }
 

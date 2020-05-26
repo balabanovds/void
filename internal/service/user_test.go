@@ -2,10 +2,11 @@ package service_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/balabanovds/void/internal/domain"
 	"github.com/balabanovds/void/internal/models"
 	"github.com/balabanovds/void/internal/service"
-	"testing"
 
 	"github.com/balabanovds/void/internal/server/ctxHelper"
 
@@ -18,6 +19,7 @@ const (
 	passwordConfirm string = "pass"
 )
 
+// creates new suite with service, storage and new user
 func prepareData(t *testing.T) (*service.Service, models.User, func()) {
 	t.Helper()
 
@@ -86,7 +88,7 @@ func TestUserService_UpdatePassword(t *testing.T) {
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
 
 	// try as admin but not self - should fail
-	ctx = context.WithValue(ctx, ctxHelper.CtxKeyIsAdmin, true)
+	ctx = context.WithValue(ctx, ctxHelper.CtxKeyRole, models.Admin)
 	err = s.Users().UpdatePassword(ctx, user.Email, newPass)
 	assert.Error(t, err)
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
@@ -113,7 +115,7 @@ func TestUserService_ToggleActive(t *testing.T) {
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
 
 	// try to toggle active by admin - should be ok
-	ctx = context.WithValue(ctx, ctxHelper.CtxKeyIsAdmin, true)
+	ctx = context.WithValue(ctx, ctxHelper.CtxKeyRole, models.Admin)
 	err = s.Users().ToggleActive(ctx, user.Email)
 	assert.NoError(t, err)
 
@@ -135,7 +137,7 @@ func TestUserService_Delete(t *testing.T) {
 	assert.EqualError(t, err, service.ErrNotAllowed.Error())
 
 	// try to delete by admin - should be ok
-	ctx = context.WithValue(context.Background(), ctxHelper.CtxKeyIsAdmin, true)
+	ctx = context.WithValue(context.Background(), ctxHelper.CtxKeyRole, models.Admin)
 	err = s.Users().Delete(ctx, user.Email)
 	assert.NoError(t, err)
 

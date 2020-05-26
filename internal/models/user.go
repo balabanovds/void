@@ -16,14 +16,16 @@ type User struct {
 	Created        time.Time `json:"created"`
 }
 
+// NewUser explains what we expect to receive in domain while creating new user
 type NewUser struct {
-	Email          string    `json:"email"`
-	HashedPassword []byte    `json:"-"`
+	Email          string `json:"email"`
+	HashedPassword []byte `json:"-"`
 }
 
+// UpdateUser expected fields for update in domain
 type UpdatedUser struct {
-	HashedPassword []byte    `json:"-"`
-	Active         bool      `json:"active"`
+	HashedPassword []byte `json:"-"`
+	Active         bool   `json:"active"`
 }
 
 func (u *User) Sanitize() {

@@ -18,6 +18,8 @@ func (s *APIServer) routes() http.Handler {
 	r.HandleFunc("/signup", s.handleSignUp()).Methods("POST")
 	r.HandleFunc("/login", s.handleLogin()).Methods("POST")
 
+	r.HandleFunc("/wiki", s.handleWiki()).Methods("GET")
+
 	private := r.PathPrefix("/private").Subrouter()
 	private.Use(s.authenticateUser)
 	private.HandleFunc("/skud2", s.handleSKUD()).Methods("POST")

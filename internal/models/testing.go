@@ -19,12 +19,16 @@ func TestProfile(t *testing.T) Profile {
 	t.Helper()
 
 	return Profile{
+		Email:     "test@mail.com",
 		FirstName: "Vasya",
 		LastName:  "Pupkin",
 		Phone:     "79212223344",
 		Position:  "tech lead",
 		CompanyID: 123456,
 		ZCode:     "ZA1234",
+		Ru: ProfileRu{
+			FirstName: "Вася",
+		},
 	}
 }
 
@@ -47,4 +51,3 @@ func TestNewProfile(t *testing.T) NewProfile {
 		},
 	}
 }
-

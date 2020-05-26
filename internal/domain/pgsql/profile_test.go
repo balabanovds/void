@@ -96,10 +96,12 @@ func TestProfileRepo_GetAll(t *testing.T) {
 	ts := NewTestSuite(t)
 	defer ts.Close()
 
+	ps := ts.Storage.Profiles().GetAll()
+	assert.Nil(t, ps)
+
 	_ = ts.CreateProfile(t, "mail1")
 	_ = ts.CreateProfile(t, "mail2")
 
-	ps, err := ts.Storage.Profiles().GetAll()
-	assert.NoError(t, err)
+	ps = ts.Storage.Profiles().GetAll()
 	assert.Len(t, ps, 2)
 }

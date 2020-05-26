@@ -29,3 +29,7 @@ func (s *APIServer) respond(w http.ResponseWriter, code int, data interface{}) {
 		_ = json.NewEncoder(w).Encode(data)
 	}
 }
+
+func renderStub(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Page is being developed.."))
+}
