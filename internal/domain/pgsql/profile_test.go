@@ -1,10 +1,11 @@
 package pgsql
 
 import (
+	"testing"
+
 	"github.com/balabanovds/void/internal/domain"
 	"github.com/balabanovds/void/internal/models"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestProfileRepo_Create(t *testing.T) {
@@ -80,7 +81,7 @@ func TestProfileRepo_Update(t *testing.T) {
 
 	err = ts.Storage.Profiles().Update(&p, upd)
 	assert.NoError(t, err)
-	assert.True(t, p.ManagerEmail.Valid)
+	assert.False(t, p.ManagerEmail.Valid)
 	mgr, err := p.ManagerEmail.Value()
 	assert.NoError(t, err)
 	assert.Empty(t, mgr)

@@ -114,7 +114,7 @@ func getURL(t *testing.T) string {
 	url := os.Getenv("DATABASE_URL")
 	if url == "" {
 		url = "host=localhost port=5432 user=void password=void123 dbname=void_test sslmode=disable"
-		//url = "host=balabanov.sknt.ru port=5432 user=void password=@ws3ed4rf dbname=void_test sslmode=disable"
+		url = "host=balabanov.sknt.ru port=5432 user=void password=@ws3ed4rf dbname=void_test sslmode=disable"
 	}
 	return url
 }
